@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
 	//bfxLibrary.GetFundingOrderBook(&fundingBookData, 100);
 
-	//bfxMain.SendCurrentErrorFile();
+	
 
 	if(argc > 1)
 		cc = bfxMain.Init(argv[1]);
@@ -64,15 +64,16 @@ int main(int argc, char** argv)
 		LOG_ERROR_CODE(cc);
 	}
 
-	
+	//bfxMain.SendCurrentErrorFile();
 
 	if (cc == SUCCESS)
 	{
 		while ((cc == SUCCESS || totalRetries < bfxMain.numRetriesAllowed) && TerminateApplication == false)
 		{
 			cc = bfxMain.Process();
-			if (cc != SUCCESS)
+			if (cc != SUCCESS && cc != CURL_HTTP_ERROR && cc != WebSocketConnectFailure && cc != WebSocketNotConnected)
 				totalRetries++;
+
 			usleep(10000);//sleep for 10 milliseconds
 		}
 	}

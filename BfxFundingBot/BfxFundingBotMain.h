@@ -8,6 +8,7 @@
 #define BEST_RATE_REDUCE_AMOUNT .00000001
 #define MINIMUM_OFFER_AMOUNT 50
 #define CheckWalletAmountIntervalSecs 30
+#define ReconnectTimeoutSecs 10
 class BfxFundingBotMain
 {
 	public:
@@ -34,6 +35,7 @@ class BfxFundingBotMain
 		time_t lastTimeProcessed;
 		time_t currTimeWalletCheck;
 		time_t lastTimeWalletCheck;
+		time_t lastTryReconnect;
 
 		int processIntervalSecs;
 		int orderBookMultiplier;
@@ -41,6 +43,7 @@ class BfxFundingBotMain
 
 		bool TimeToModify();
 		bool TimeToCheckWallet();
+		bool IsTimeToReconnect();
 		int ModifyExistingOffers();
 		double GetAvaiableAmount(int* cc);
 		double GetRateForPost(int* cc, double amountAvaiable);
@@ -49,6 +52,8 @@ class BfxFundingBotMain
 
 		int ProcessWrapper(int type);
 		enum {modify_offers, post_offers};
+
+		bool ErrorConnectingBfx;
 };
 
 

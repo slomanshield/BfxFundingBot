@@ -5,6 +5,7 @@ BfxFundingBotMain::BfxFundingBotMain()
 	currTime = 0;
 	lastTimeProcessed = 0;
 	currTimeWalletCheck = 0;
+	lastTryReconnect = 0;
 	currency = "fUSD";
 }
 
@@ -117,13 +118,18 @@ int BfxFundingBotMain::SendCurrentErrorFile()
 int BfxFundingBotMain::Process()
 {
 	int cc = SUCCESS;
-	
 	if (bfxLibrary.GetWebSocketStatus() != WebSocket_ReadyState_Open)
 	{
-		cc = ReConnectWebSocket();
+		cc = WebSocketConnectFailure; // since we arent connected just set it to failure so we do not log
+		if (ErrorConnectingBfx == false)
+			ErrorConnectingBfx = true;
+		if(IsTimeToReconnect())
+			cc = ReConnectWebSocket();
+		if (cc == SUCCESS)
+			ErrorConnectingBfx = false;
 	}
 
-	if (TimeToModify() == true)
+	if (TimeToModify() == true && ErrorConnectingBfx == false)
 	{
 
 		if (cc == SUCCESS)
@@ -133,7 +139,7 @@ int BfxFundingBotMain::Process()
 		}
 	}
 
-	if (TimeToCheckWallet() == true)
+	if (TimeToCheckWallet() == true && ErrorConnectingBfx == false)
 	{
 		if (cc == SUCCESS)
 		{
@@ -444,5 +450,16 @@ bool BfxFundingBotMain::TimeToCheckWallet()
 	}
 
 	currTimeWalletCheck = time(NULL);
+	return false;
+}
+
+bool BfxFundingBotMain::IsTimeToReconnect()
+{
+	time_t currTime = time(NULL);
+	if (currTime - lastTryReconnect >= ReconnectTimeoutSecs)
+	{
+		lastTryReconnect = currTime;
+		return true;
+	}
 	return false;
 }
